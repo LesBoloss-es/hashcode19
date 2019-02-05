@@ -1,16 +1,11 @@
-
-type problem = unit
-
-type solution = unit
-
-let score _output =
-  assert false
+module Log = (val Logger.create "main" : Logs.LOG)
 
 let parse_problem filename =
+  Log.debug (fun m -> m "Parsing %s" filename);
   let ichan = open_in filename in
   let rec parse_problem () =
     try
-      let _ = input_line ichan in
+      let line = input_line ichan in
       assert false;
       parse_problem ()
     with
@@ -21,6 +16,7 @@ let parse_problem filename =
   problem
 
 let print_solution filename solution =
+  Log.debug (fun m -> m "Printing in %s" filename);
   let ochan = open_out filename in
   assert false;
   close_out ochan

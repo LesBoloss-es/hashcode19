@@ -4,3 +4,5 @@
 
 ## Dune
 /_build
+/*.install
+*.merlin

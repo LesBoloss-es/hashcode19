@@ -1,4 +1,5 @@
 (executable
  (name main)
  (public_name hashcode19)
+ (libraries logs.lwt lwt.unix)
  (preprocess (pps ppx_deriving.std)))
