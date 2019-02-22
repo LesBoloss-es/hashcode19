@@ -26,5 +26,4 @@ let my_reporter () =
   { Logs.report }
 
 let () = Logs.(set_reporter (my_reporter ()))
-
 let () = Logs.set_level ~all:false None
