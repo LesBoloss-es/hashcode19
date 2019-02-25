@@ -12,3 +12,4 @@ build:
 
 clean:
 	dune clean
+	rm -f bin
