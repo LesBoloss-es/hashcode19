@@ -13,7 +13,7 @@ let strategies : (string * (Problem.t -> Solution.t)) list =
         :: !strategies
     done
   done;
-!strategies
+  !strategies
 
 let all : (string * (Problem.t -> Solution.t)) Seq.t =
   List.to_seq strategies
