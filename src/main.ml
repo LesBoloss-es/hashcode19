@@ -18,74 +18,6 @@ type process_status = Unix.process_status =
   | WSTOPPED of int
 [@@deriving show]
 
-let write_solution_if_better ~problem ~solver_name solution =
-  let problem_name = Problem.name problem in
-  let problem_file ext =
-    Filename.concat !Config.solutions (problem_name ^ ext)
-  in
-  let lock () =
-    try
-      let ochan = open_out_gen [Open_creat; Open_excl] 0o644 (problem_file ".lock") in
-      close_out ochan; true
-    with
-      Sys_error _ -> false
-  in
-  let unlock () =
-    Sys.remove (problem_file ".lock")
-  in
-  let read_score () =
-    try
-      let ichan = open_in (problem_file ".score") in
-      let score = int_of_string (input_line ichan) in
-      close_in ichan;
-      score
-    with
-    | Sys_error _ -> 0
-    | End_of_file ->
-      Log.warn (fun m -> m "Got end of file while reading %s" (problem_file ".score"));
-      0
-    | Failure _ ->
-      Log.warn (fun m -> m "%s doesn't contain an integer" (problem_file ".score"));
-      0
-  in
-  let write_score score =
-    let ochan = open_out (problem_file ".score") in
-    output_string ochan ((string_of_int score) ^ "\n");
-    close_out ochan
-  in
-  let write_solver_name () =
-    let ochan = open_out (problem_file ".solver") in
-    output_string ochan (solver_name ^ "\n");
-    close_out ochan
-  in
-  let add_solver_name () =
-    let ochan = open_out_gen [Open_append] 0o644 (problem_file ".solver") in
-    output_string ochan (solver_name ^ "\n");
-    close_out ochan
-  in
-  let write_solution () =
-    Solution.to_file (problem_file "") solution
-  in
-  let rec write_solution_if_better () =
-    if lock () then
-      (
-        let score = Solution.score problem solution in
-        let score' = read_score () in
-        if score > score' then
-          (
-            write_score score;
-            write_solver_name ();
-            write_solution ();
-          )
-        else if score = score' then
-          add_solver_name ();
-        unlock ()
-      )
-    else
-      write_solution_if_better ()
-  in
-  write_solution_if_better ()
-
 let run_solver_on_problem (problem, (name, solver)) =
   match Lwt_unix.fork () with
   | 0 ->
@@ -93,30 +25,51 @@ let run_solver_on_problem (problem, (name, solver)) =
        the score of the obtained solution and look in the solutions directory to
        see if that is an improvement. If yes, we write our solution. *)
     let solution = solver problem in
-    write_solution_if_better ~problem ~solver_name:name solution;
+    Io.Solution.write_if_better ~problem ~solver_name:name solution;
     exit 0
 
   | pid ->
     (* On the forker's side, we log a bit and wait for the forkee to terminate.
        We check its return status and that's it. *)
-    Log.info (fun m -> m "Solving %s/%s[%d]"
+    Log.debug (fun m -> m "Solving %s/%s[%d]"
                  (Problem.name problem) name pid);
     Lwt_unix.waitpid [] pid >>= fun (_, status) ->
     if status = WEXITED 0 then
-      Log.info (fun m -> m "%s/%s[%d] stopped with success."
+      Log.debug (fun m -> m "%s/%s[%d] stopped with success."
                    (Problem.name problem) name pid)
     else
       Log.warn (fun m -> m "%s/%s[%d] stopped with status: %a"
                    (Problem.name problem) name pid pp_process_status status);
     Lwt.return ()
 
+let log_total_score problems =
+  let open Io.Solution in
+  let total_score =
+    problems
+    |> List.map
+      (fun problem ->
+         let name = Problem.name problem in
+         with_lock ~name @@ fun () ->
+         read_score ~name)
+    |> List.fold_left (+) 0
+  in
+  Log.info (fun m -> m "Total score: %d" total_score)
+
+let rec log_total_score_every ~time problems =
+  Lwt_unix.sleep time >>= fun () ->
+  log_total_score problems;
+  log_total_score_every ~time problems
+
 let () =
   Log.info (fun m -> m "Starting up. Parsing command line.");
+  let start_time = Unix.gettimeofday () in
   Config.parse_command_line ();
-  Log.info (fun m -> m "Getting problems.");
+  Log.debug (fun m -> m "Getting problems.");
   let problems = get_problems () in
   Log.info (fun m -> m "Found %d problems. Starting solvers."
                (List.length problems));
+
+  Lwt.async (fun () -> log_total_score_every ~time:5. problems);
 
   Solvers.tasks problems
   |> lwt_stream_of_seq
@@ -125,4 +78,7 @@ let () =
     run_solver_on_problem
   |> Lwt_main.run;
 
+  log_total_score problems;
+  Log.info (fun m -> m "Total time: %.2fs."
+               (Unix.gettimeofday () -. start_time));
   Log.info (fun m -> m "The end. See you! :-)")
