@@ -16,9 +16,12 @@ run: build
 		--solutions $(SOLUTIONS) \
 		--workers $(WORKERS)
 
+zip: clean
+	zip -9 -r sources.zip *
+
 clean:
 	dune clean
-	rm -f bin
+	rm -f bin sources.zip
 
 cleanall: clean
 	rm -f solutions/*
