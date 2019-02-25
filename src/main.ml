@@ -29,7 +29,7 @@ type process_status = Unix.process_status =
   | WSTOPPED of int
 [@@deriving show]
 
-let run_solver problem (name, solver) =
+let run_solver_on_problem (problem, (name, solver)) =
   match Lwt_unix.fork () with
   | 0 ->
     Log.info (fun m -> m "Trying solver %s on problem %s" name (Problem.name problem));
@@ -47,20 +47,15 @@ let run_solver problem (name, solver) =
     Log.info (fun m -> m "Solver %s (%d) ended with status %a" name pid pp_process_status status);
     Lwt.return ()
 
-let solve_problem problem =
-  Log.info (fun m -> m "Starting on problem %s" (Problem.name problem));
-  Lwt_stream.iter_n
-    ~max_concurrency:!Config.workers
-    (run_solver problem)
-    (lwt_stream_of_seq Solvers.all)
-  >>= fun () ->
-  Log.info (fun m -> m "I did what I could on %s" (Problem.name problem));
-  Lwt.return ()
-
 let () =
   Log.info (fun m -> m "Starting up");
   Config.parse_command_line ();
   let problems = get_problems () in
   create_solutions_directories problems;
-  Lwt_main.run (Lwt_list.iter_s solve_problem problems);
+  Solvers.tasks problems
+  |> lwt_stream_of_seq
+  |> Lwt_stream.iter_n
+    ~max_concurrency:!Config.workers
+    run_solver_on_problem
+  |> Lwt_main.run;
   Log.info (fun m -> m "The end. Check out the directory %s" !Config.solutions)
