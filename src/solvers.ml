@@ -1,7 +1,7 @@
 open ExtPervasives
 
 let all : (string * (Problem.t -> Solution.t)) Seq.t =
-  seq_from_function
+  ExtSeq.from_function
     (fun () ->
        let a = Random.int 100 in
        let b = Random.int 100 in
