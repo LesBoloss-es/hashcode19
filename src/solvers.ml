@@ -1,22 +1,17 @@
-let strategies : (string * (Problem.t -> Solution.t)) list =
-  let strategies = ref [] in
-  let m_bonus = 6 in
-  for m_tostart = 1 to 3 do
-    let m_tostart = 2 * m_tostart in
-    for m_wait = 4 to 6 do
-      let m_wait = m_wait in
-      strategies :=
-        (
-          (Format.sprintf "Multipliers %d %d %d %d" m_bonus 0 m_tostart m_wait) ,
-          Naive.schedule_with_score Naive.naive_choice_better (Linear.multipliers m_bonus 0 m_tostart m_wait)
-        )
-        :: !strategies
-    done
-  done;
-  !strategies
+open ExtPervasives
 
 let all : (string * (Problem.t -> Solution.t)) Seq.t =
-  List.to_seq strategies
+  seq_from_function
+    (fun () ->
+       let a = Random.int 100 in
+       let b = Random.int 100 in
+       let c = Random.int 100 in
+       let d = Random.int 100 in
+
+       Some
+         (spf "naive-%d-%d-%d-%d" a b c d,
+          (Naive.schedule_with_score Naive.naive_choice_better
+             (Linear.multipliers a b c d))))
 
 let tasks all_problems =
   let open Seq in
