@@ -1,4 +1,4 @@
-.PHONY: build run clean
+.PHONY: build run clean cleanall
 
 build:
 	dune build @install
@@ -10,3 +10,6 @@ run: build
 clean:
 	dune clean
 	rm -f bin
+
+cleanall: clean
+	rm -f solutions/*
