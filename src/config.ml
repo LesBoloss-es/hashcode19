@@ -1,9 +1,9 @@
 open ExtPervasives
 
 let loglevel = ref Logs.Debug
-let workers = ref 8
 let problems = ref "problems"
 let solutions = ref "solutions"
+let workers = ref 8
 
 let set_level level =
   match Logs.level_of_string level with
@@ -24,3 +24,5 @@ let usage = (spf "Usage: %s [--problems DIR] [--solutions DIR] [--workers NB]" S
 
 let parse_command_line () =
   Arg.parse specs handle_file usage
+
+let stop = ref false
