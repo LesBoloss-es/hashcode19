@@ -6,7 +6,11 @@ let get_problems () =
   |> Array.to_list
   |> List.filter (fun file -> file <> "" && file.[0] <> '.')
   |> List.sort compare
-  |> List.map (Filename.concat !Config.problems ||> Problem.from_file)
+  |> List.map
+    (fun problem_name ->
+       Problem.from_file
+         ~problem_name
+         (Filename.concat !Config.problems problem_name))
 
 let create_solutions_directories problems =
   let mkdir dir =
@@ -32,7 +36,7 @@ let run_solver problem (name, solver) =
     let solution = solver problem in
     let score = Solution.score problem solution in
     Log.info (fun m -> m "Solver %s got score %d" name score);
-    let file = spf "%09d_%s" score (datetime ()) in
+    let file = spf "%d_%s" score (datetime ()) in
     let file = Filename.(concat !Config.solutions (concat (Problem.name problem) file)) in
     Solution.to_file file solution;
     exit 0
