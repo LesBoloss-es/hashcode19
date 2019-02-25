@@ -14,6 +14,15 @@ let lwt_stream_of_seq s =
          s := s';
          Lwt.return_some e)
 
+let seq_from_function (f : unit -> 'a option) : 'a Seq.t =
+  let open Seq in
+  let rec s () =
+    match f () with
+    | None -> Nil
+    | Some x -> Cons (x, s)
+  in
+  s
+
 let (||>) f g = fun x -> f x |> g
 
 let datetime () =
