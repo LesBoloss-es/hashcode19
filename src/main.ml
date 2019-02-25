@@ -30,7 +30,7 @@ let run_solver problem (name, solver) =
   | 0 ->
     Log.info (fun m -> m "Trying solver %s on problem %s" name (Problem.name problem));
     let solution = solver problem in
-    let score = Solution.score solution in
+    let score = Solution.score problem solution in
     Log.info (fun m -> m "Solver %s got score %d" name score);
     let file = spf "%09d_%s" score (datetime ()) in
     let file = Filename.(concat !Config.solutions (concat (Problem.name problem) file)) in
