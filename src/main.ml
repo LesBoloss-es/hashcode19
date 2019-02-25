@@ -61,10 +61,12 @@ let rec log_total_score_every ~time problems =
   log_total_score_every ~time problems
 
 let () =
-  Log.info (fun m -> m "Starting up. Parsing command line.");
+  Log.info (fun m -> m "Starting up.");
   Random.init 135801055;
   let start_time = Unix.gettimeofday () in
+  Log.debug (fun m -> m "Parsing command line.");
   Config.parse_command_line ();
+  Logger.set_level !Config.loglevel;
   Log.debug (fun m -> m "Getting problems.");
   let problems = get_problems () in
   Log.info (fun m -> m "Found %d problems. Starting solvers."

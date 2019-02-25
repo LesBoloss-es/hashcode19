@@ -5,9 +5,15 @@ let workers = ref 8
 let problems = ref "problems"
 let solutions = ref "solutions"
 
+let set_level level =
+  match Logs.level_of_string level with
+  | Ok (Some level) -> loglevel := level
+  | _ -> raise (Arg.Bad "bad log level")
+
 let specs =
   let open Arg in
   align [
+    "--log-level", String set_level,    spf "LEVEL Sets log level to LEVEL (default: %s)" (Logs.level_to_string (Some !loglevel)) ;
     "--problems",  Set_string problems, spf "DIR Sets the problems directory to DIR (default: %s)" !problems ;
     "--solutions", Set_string problems, spf "DIR Sets the solutions directory to DIR (default: %s)" !solutions ;
     "--workers",   Set_int workers,     spf "NB Sets the number of workers to NB (default: %d)" !workers ;
