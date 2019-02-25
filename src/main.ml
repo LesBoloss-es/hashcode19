@@ -89,7 +89,7 @@ let () = Lwt.async (fun () -> log_total_score_every ~time:5. problems)
 let () =
   Log.info (fun m -> m "Starting solvers.");
   Solvers.tasks problems
-  |> lwt_stream_of_seq
+  |> ExtSeq.to_lwt_stream
   |> Lwt_stream.iter_n
     ~max_concurrency:!Config.workers
     run_solver_on_problem
