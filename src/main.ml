@@ -62,6 +62,7 @@ let rec log_total_score_every ~time problems =
 
 let () =
   Log.info (fun m -> m "Starting up. Parsing command line.");
+  Random.init 135801055;
   let start_time = Unix.gettimeofday () in
   Config.parse_command_line ();
   Log.debug (fun m -> m "Getting problems.");
