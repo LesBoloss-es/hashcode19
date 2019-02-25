@@ -1,5 +1,4 @@
 open Problem
-open Solution
 
 let multipliers
     m_bonus m_duration m_tostart m_wait
