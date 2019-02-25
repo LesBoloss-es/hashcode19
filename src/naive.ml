@@ -1,11 +1,10 @@
 open Problem
-open Solution
 
 let end_time t pos p r =
   let ride = p.rides.(r) in
   (max ride.earliest_start (t + distance pos ride.start)) + ride.duration
 
-let find_best (score : time -> intersection -> problem -> ride -> int) t pos p rides_booked =
+let find_best (score : time -> intersection -> Problem.t -> ride -> int) t pos p rides_booked =
   let r = ref (-1) in  (* selected ride *)
   let s = ref min_int in  (* best score at the moment *)
   let find i ride =
@@ -19,10 +18,10 @@ let find_best (score : time -> intersection -> problem -> ride -> int) t pos p r
   Array.iteri find p.rides ;
   !r
 
-let to_solution cars : solution =
+let to_solution cars : Solution.t =
   Array.map (fun (_, _, q, _) -> List.rev q) cars
 
-let schedule_with_score score (p : problem) : solution =
+let _schedule_with_score score (p : Problem.t) : Solution.t =
   let cars = Array.make p.vehicles (0, (0, 0), [], false) in
   let rides_booked = Array.make (Array.length p.rides) false in
   while Array.exists (fun (_, _, _, finished) -> not finished) cars do
@@ -44,7 +43,7 @@ let schedule_with_score score (p : problem) : solution =
   done;
   to_solution cars
 
-let naive_choice p cars last_chosen =
+let naive_choice _p cars last_chosen =
   let i = ref last_chosen in
   let incr () =
     if !i + 1 = Array.length cars
@@ -85,7 +84,7 @@ let naive_choice_better p cars last_chosen =
   done;
   if !i = last_chosen then -1 else !i
 
-let less_advanced p cars last_chosen =
+let less_advanced _p cars last_chosen =
   let i = ref (-1) in
   let min_t = ref max_int in
   let select j (t, _, _, finished) =
@@ -104,7 +103,7 @@ let less_advanced p cars last_chosen =
   if !i = -1 then Array.iteri select' cars;
   !i
 
-let schedule_with_score choice score (p : problem) : solution =
+let schedule_with_score choice score (p : Problem.t) : Solution.t =
   let cars = Array.make p.vehicles (0, (0, 0), [], false) in
   let rides_booked = Array.make (Array.length p.rides) false in
   let i = ref 0 in
