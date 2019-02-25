@@ -20,13 +20,16 @@ let tasks all_problems =
      etc. *)
   let rec s problems solvers =
     fun () ->
-      match solvers () with
-      | Nil -> Nil
-      | Cons (solver, solvers') ->
-        match problems with
-        | [] ->
-          s all_problems solvers' ()
-        | problem :: problems ->
-          Cons ((problem, solver), s problems solvers)
+      if !Config.stop then
+        Nil
+      else
+        match solvers () with
+        | Nil -> Nil
+        | Cons (solver, solvers') ->
+          match problems with
+          | [] ->
+            s all_problems solvers' ()
+          | problem :: problems ->
+            Cons ((problem, solver), s problems solvers)
   in
   s all_problems all

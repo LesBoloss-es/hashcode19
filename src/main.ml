@@ -60,20 +60,34 @@ let rec log_total_score_every ~time problems =
   log_total_score problems;
   log_total_score_every ~time problems
 
+let () = Log.info (fun m -> m "Starting up.")
+
+let () = Sys.(set_signal sigint (Signal_handle (fun _ ->
+    Log.info (fun m -> m "Received SIGINT (^C). Stopping gracefully.");
+    Config.stop := true)))
+
 let () =
-  Log.info (fun m -> m "Starting up.");
-  Random.init 135801055;
-  let start_time = Unix.gettimeofday () in
+  let seed = 135801055 in
+  Log.debug (fun m -> m "Setting seed to %d." seed);
+  Random.init seed
+
+let start_time = Unix.gettimeofday ()
+
+let () =
   Log.debug (fun m -> m "Parsing command line.");
   Config.parse_command_line ();
-  Logger.set_level !Config.loglevel;
+  Logger.set_level !Config.loglevel
+
+let problems =
   Log.debug (fun m -> m "Getting problems.");
   let problems = get_problems () in
-  Log.info (fun m -> m "Found %d problems. Starting solvers."
-               (List.length problems));
+  Log.info (fun m -> m "Found %d problems." (List.length problems));
+  problems
 
-  Lwt.async (fun () -> log_total_score_every ~time:5. problems);
+let () = Lwt.async (fun () -> log_total_score_every ~time:5. problems)
 
+let () =
+  Log.info (fun m -> m "Starting solvers.");
   Solvers.tasks problems
   |> lwt_stream_of_seq
   |> Lwt_stream.iter_n
