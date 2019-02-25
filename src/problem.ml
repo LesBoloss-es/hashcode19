@@ -24,7 +24,7 @@ type t = {
 let distance (x1, y1) (x2, y2) =
   abs (x2 - x1) + abs (y2 - y1)
 
-let from_file (filename : string) : t =
+let from_file ~problem_name (filename : string) : t =
   let ic = open_in filename in
   match String.split_on_char ' ' (input_line ic) with
   | [_rows; _columns; vehicles; number_of_rides; bonus; steps] ->
@@ -48,7 +48,7 @@ let from_file (filename : string) : t =
         | _ -> assert false
       done;
       close_in ic;
-      { name = filename ;
+      { name = problem_name ;
         vehicles = int_of_string vehicles ;
         rides ;
         average_ride_size = int_of_float !average_ride_size ;
