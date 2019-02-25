@@ -1,14 +1,11 @@
-.PHONY: all run build clean
-
-all: build
-	@printf "Try to run `make run`."
-
-run:
-	bin/hashcode19 --problems problems
+.PHONY: build run clean
 
 build:
 	dune build @install
 	[ -e bin ] || ln -s _build/install/default/bin bin
+
+run: build
+	bin/hashcode19
 
 clean:
 	dune clean
