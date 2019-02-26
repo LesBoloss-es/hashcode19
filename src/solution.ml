@@ -1,13 +1,17 @@
 (* open ExtPervasives *)
 module Log = (val Logger.create "solution" : Logs.LOG)
 
-type t = unit (* FIXME *)
+type t =
+  int list array
 
-let to_file (file : string) (_solution : t) : unit =
-  Log.debug (fun m -> m "Printing in %s" file);
-  let ochan = open_out file in
-  (assert false : unit); (* FIXME *)
-  close_out ochan
+let to_file (filename : string) (solution : t) : unit =
+  let ochan = open_out filename in
+  ignore ochan;
+  ignore filename;
+  ignore solution;
+  assert false (* FIXME *)
 
-let score (_solution : t) : int =
-  (assert false : int) (* FIXME *)
+let score problem solution =
+  ignore problem;
+  ignore solution;
+  assert false (* FIXME *)

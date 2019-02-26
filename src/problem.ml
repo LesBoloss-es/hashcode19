@@ -5,19 +5,11 @@ type t = {
   name : string ;
 }
 
-let from_file (file : string) : t =
-  Log.info (fun m -> m "Parsing %s" file);
-  let ichan = open_in file in
-  let rec parse_problem () =
-    try
-      let _line = input_line ichan in
-      (assert false : unit); (* FIXME *)
-      parse_problem ()
-    with
-      End_of_file -> ()
-  in
-  let _ = parse_problem () in (* FIXME *)
-  close_in ichan;
-  { name = file } (* FIXME *)
+let from_file ~problem_name (filename : string) : t =
+  let ichan = open_in filename in
+  ignore ichan;
+  ignore problem_name;
+  ignore filename;
+  assert false (* FIXME *)
 
 let name problem = problem.name

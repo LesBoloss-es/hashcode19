@@ -3,17 +3,6 @@ let epf = Format.eprintf
 let fpf = Format.fprintf
 let spf = Format.sprintf
 
-let lwt_stream_of_seq s =
-  Lwt_stream.from
-    (let s = ref s in
-     fun () ->
-       match !s () with
-       | Seq.Nil ->
-         Lwt.return_none
-       | Cons (e, s') ->
-         s := s';
-         Lwt.return_some e)
-
 let (||>) f g = fun x -> f x |> g
 
 let datetime () =

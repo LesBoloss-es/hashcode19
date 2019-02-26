@@ -9,4 +9,8 @@
 
 ## Project
 /bin
-/solutions
+/solutions/*
+/sources.zip
+
+## General
+!.gitkeep

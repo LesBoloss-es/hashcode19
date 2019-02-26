@@ -25,5 +25,8 @@ let my_reporter () =
   in
   { Logs.report }
 
+let set_level level =
+  Logs.set_level ~all:true (Some level)
+
 let () = Logs.(set_reporter (my_reporter ()))
 let () = Logs.set_level ~all:false None
