@@ -1,17 +1,7 @@
-open ExtPervasives
+(* open ExtPervasives *)
 
 let all : (string * (Problem.t -> Solution.t)) Seq.t list =
-  [ExtSeq.from_function
-    (fun () ->
-       let a = Random.int 100 in
-       let b = Random.int 100 in
-       let c = Random.int 100 in
-       let d = Random.int 100 in
-
-       Some
-         (spf "naive-%d-%d-%d-%d" a b c d,
-          (Naive.schedule_with_score Naive.naive_choice_better
-             (Linear.multipliers a b c d))))]
+  []
 
 let tasks all_problems =
   let open Seq in
