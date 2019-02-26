@@ -22,7 +22,7 @@ let from_function (f : unit -> 'a option) : 'a Seq.t =
 let flatten (s : 'a t t) : 'a t =
   flat_map (fun x -> x) s
 
-let int ?(start=0) ?(end_=max_int) () =
+let int ?(start=0) ?(end_=max_int) () : int t =
   let rec s i = fun () ->
     if i > end_ then
       Nil
@@ -31,7 +31,7 @@ let int ?(start=0) ?(end_=max_int) () =
   in
   s start
 
-let intertwine s1 s2 =
+let intertwine (s1 : 'a t) (s2 : 'a t) : 'a t =
   let rec s s1 s2 = fun () ->
     match s1 () with
     | Nil -> s2 ()
