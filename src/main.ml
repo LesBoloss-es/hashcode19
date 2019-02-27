@@ -1,6 +1,15 @@
 open ExtPervasives
 module Log = (val Logger.create "main" : Logs.LOG)
 
+let check_example () =
+  let example_score = Solution.score Problem.example Solution.example in
+  if not (example_score = Solution.example_score) then
+    (
+      Log.err (fun m -> m "Unexpected example score (%d; expected: %d)"
+                  example_score Solution.example_score);
+      exit 1
+    )
+
 let get_problems () =
   Sys.readdir !Config.problems
   |> Array.to_list
@@ -8,9 +17,13 @@ let get_problems () =
   |> List.sort compare
   |> List.map
     (fun problem_name ->
-       Problem.from_file
-         ~problem_name
-         (Filename.concat !Config.problems problem_name))
+       let problem =
+         Problem.from_file
+           ~problem_name
+           (Filename.concat !Config.problems problem_name)
+       in
+       Log.debug (fun m -> m "Problem %s:@\n%a" problem_name Problem.pp problem);
+       problem)
 
 type process_status = Unix.process_status =
   | WEXITED of int
@@ -77,6 +90,10 @@ let () =
   Log.debug (fun m -> m "Parsing command line.");
   Config.parse_command_line ();
   Logger.set_level !Config.loglevel
+
+let () =
+  Log.debug (fun m -> m "Checking example.");
+  check_example ()
 
 let problems =
   Log.debug (fun m -> m "Getting problems.");
