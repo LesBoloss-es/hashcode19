@@ -11,6 +11,12 @@ type available = {
   mutable nb_h_eligible: int;
 }
 
+let shuffle_array arr =
+  let a' = Array.map (fun x -> (x, Random.bits ())) arr in
+  Array.sort (fun x y -> compare (snd x) (snd y)) a';
+  Array.iteri (fun i x -> arr.(i) <- x)
+
+
 let get arr index =
   assert (index < Array.length arr);
   arr.(index)
@@ -27,7 +33,7 @@ let get_random_slide (rem : available) : index =
   let w_h = rem.nb_h_eligible in
   let l_v = rem.nb_v_eligible in
   let w_v = l_v * (l_v - 1) / 2 in
-  let ratio = (float w_h) /. ((float w_h) +. (float w_v)) in 
+  let ratio = (float w_h) /. ((float w_h) +. (float w_v)) in
   let choose_h = (Random.float 1.) < ratio in
   if (choose_h || w_v = 0) && w_h <> 0 then begin
     let n_h = Array.length rem.horizontals in
@@ -114,7 +120,7 @@ let make_possible_slides input : available =
     input.Problem.photos_v;
   Array.iteri (fun i elt -> horizontals.(i) <- (elt, true))
     input.Problem.photos_h;
-  { 
+  {
     nb_h_eligible = Array.length horizontals ;
     nb_v_eligible = Array.length verticals ;
     verticals;
