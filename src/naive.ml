@@ -1,5 +1,7 @@
 open ExtPervasives
 
+module Log = (val Logger.create "naive" : Logs.LOG)
+
 type index = Horz of (Solution.slide * int) | Vert of (Solution.slide * int * int)
 
 type available = {
@@ -25,8 +27,9 @@ let rec get_random_slide (rem : available) : index =
   let w_h = rem.nb_h_eligible in
   let l_v = rem.nb_v_eligible in
   let w_v = l_v * (l_v - 1) / 2 in
-  let choose_h = Random.int (w_h + w_v) < w_h in
-  if choose_h then begin
+  let ratio = (float w_h) /. ((float w_h) +. (float w_v)) in 
+  let choose_h = (Random.float 1.) < ratio in
+  if (choose_h || w_v = 0) && w_h <> 0 then begin
     let n = Random.int (Array.length rem.horizontals) in
     let (slide, eligible) = get rem.horizontals n in
     if not eligible then
@@ -35,10 +38,10 @@ let rec get_random_slide (rem : available) : index =
       Horz (Solution.One slide, n)
   end else begin
     let n_v = Array.length rem.verticals in
-    let n1, n2 = Random.int n_v, Random.int n_v in
+    let n1, n2 = (Random.int n_v), (Random.int n_v) in
     let (slide1, eligible1) = get rem.verticals n1 in
     let (slide2, eligible2) = get rem.verticals n2 in
-    if not (eligible1 && eligible2) then
+    if (not (eligible1 && eligible2)) || n1 = n2 then
       get_random_slide rem
     else
       Vert (Solution.Two (slide1, slide2), n1, n2)
@@ -68,8 +71,8 @@ let discard (rem: available) (index: index) =
     end
 
   | Vert (_, idx1, idx2) ->
-    let (ph1, _) = get rem.horizontals idx1 in
-    let (ph2, _) = get rem.horizontals idx2 in
+    let (ph1, _) = get rem.verticals idx1 in
+    let (ph2, _) = get rem.verticals idx2 in
     set rem.verticals idx1 (ph1, false);
     set rem.verticals idx2 (ph2, false);
     rem.nb_v_eligible <- pred (pred rem.nb_v_eligible);
@@ -139,7 +142,7 @@ let solver input nb_iterations =
   Solution.{ slides ; length = !pos - 1 }
 
 let instances =
-  ExtSeq.int ~start:1 ()
+  ExtSeq.int ~start:70 ()
   |>  Seq.map (fun n ->
       let n = 20 * n in
       let s = "input-" ^ (soi n) in
