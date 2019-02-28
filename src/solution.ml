@@ -34,8 +34,13 @@ let score_of_slides s1 s2 =
 
 let score problem solution =
   ignore problem;
-  ignore solution;
-  assert false (* FIXME *)
+  let rec aux i = 
+    if i + 1 >= solution.length then 0
+    else begin
+      score_of_slides solution.slides.(i) solution.slides.(i+1) + (aux (i+1))
+    end
+  in
+  aux 0
 
 let example = () (* FIXME *)
 let example_score = 0 (* FIXME *)
