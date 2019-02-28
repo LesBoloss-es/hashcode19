@@ -29,6 +29,7 @@ let run_solver_on_problem (problem, (name, solver)) =
        the score of the obtained solution and look in the solutions directory to
        see if that is an improvement. If yes, we write our solution. *)
     let solution = solver (Problem.copy problem) in
+    Log.debug (fun m -> m "Solution to %s:@\n%a" (Problem.name problem) Solution.pp solution);
     Io.Solution.write_if_better ~problem ~solver_name:name solution;
     exit 0
 
