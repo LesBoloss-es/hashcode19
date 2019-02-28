@@ -2,6 +2,8 @@ open ExtPervasives
 
 type available = {
   mutable slides: (Solution.slide * bool) array;
+  mutable verticals: (Problem.photo * bool) array;
+  mutable horizontals: (Problem.photo * bool) array;
   mutable nb_eligible: int;
 }
 
