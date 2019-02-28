@@ -103,5 +103,3 @@ let from_string ~problem_name (string : string) : t =
   problem
 
 let name problem = problem.name
-
-let example = "4\nH 3 cat beach sun\nV 2 selfie smile\nV 2 garden selfie\nH 2 garden cat\n"
