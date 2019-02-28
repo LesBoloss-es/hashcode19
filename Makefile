@@ -3,13 +3,14 @@
 LOGLEVEL ?= debug
 PROBLEMS ?= problems
 SOLUTIONS ?= solutions
-WORKERS ?= $(shell cat /proc/cpuinfo | sed -n 's/processor[^:]*:[^0-9]*\([0-9]*\)/\1/p' | sort -nr | head -n 1)
+WORKERS ?= 1
 
 build:
 	dune build @install
 	[ -e bin ] || ln -s _build/install/default/bin bin
 
 run: build
+	rm -f solutions/*.lock
 	bin/hashcode19             \
 		--log-level $(LOGLEVEL)  \
 		--problems $(PROBLEMS)   \
