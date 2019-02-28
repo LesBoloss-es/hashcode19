@@ -39,8 +39,12 @@ let run_solver_on_problem (problem, (name, solver)) =
       Log.debug (fun m -> m "%s/%s[%d] stopped with success."
                    (Problem.name problem) name pid)
     else
-      Log.warn (fun m -> m "%s/%s[%d] stopped with status: %a"
-                   (Problem.name problem) name pid pp_process_status status);
+      (
+        Log.warn (fun m -> m "%s/%s[%d] stopped with status: %a"
+                     (Problem.name problem) name pid pp_process_status status);
+        if !Config.strict then
+          exit 1
+      );
     Lwt.return ()
 
 let log_total_score problems =

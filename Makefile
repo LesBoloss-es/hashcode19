@@ -3,6 +3,7 @@
 LOGLEVEL ?= debug
 PROBLEMS ?= problems
 SOLUTIONS ?= solutions
+STRICT ?= yes
 WORKERS ?= 1
 
 build:
