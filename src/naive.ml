@@ -142,7 +142,7 @@ let solver input nb_iterations =
   Solution.{ slides ; length = !pos - 1 }
 
 let instances =
-  ExtSeq.int ~start:70 ()
+  ExtSeq.int ~start:10 ()
   |>  Seq.map (fun n ->
       let n = 20 * n in
       let s = "input-" ^ (soi n) in
