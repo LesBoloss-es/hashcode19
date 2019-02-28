@@ -23,28 +23,44 @@ let slide_of_index = function
   | Horz (s, _) -> s
   | Vert (s, _, _) -> s
 
-let rec get_random_slide (rem : available) : index =
+let get_random_slide (rem : available) : index =
   let w_h = rem.nb_h_eligible in
   let l_v = rem.nb_v_eligible in
   let w_v = l_v * (l_v - 1) / 2 in
   let ratio = (float w_h) /. ((float w_h) +. (float w_v)) in 
   let choose_h = (Random.float 1.) < ratio in
   if (choose_h || w_v = 0) && w_h <> 0 then begin
-    let n = Random.int (Array.length rem.horizontals) in
-    let (slide, eligible) = get rem.horizontals n in
-    if not eligible then
-      get_random_slide rem
-    else
-      Horz (Solution.One slide, n)
+    let n_h = Array.length rem.horizontals in
+    let rec pick_aux () =
+      let n = Random.int n_h in
+      let (slide, eligible) = get rem.horizontals n in
+      if not eligible then
+        pick_aux ()
+      else
+        Horz (Solution.One slide, n)
+    in
+    pick_aux ()
   end else begin
     let n_v = Array.length rem.verticals in
-    let n1, n2 = (Random.int n_v), (Random.int n_v) in
-    let (slide1, eligible1) = get rem.verticals n1 in
-    let (slide2, eligible2) = get rem.verticals n2 in
-    if (not (eligible1 && eligible2)) || n1 = n2 then
-      get_random_slide rem
-    else
-      Vert (Solution.Two (slide1, slide2), n1, n2)
+    let rec pick_n1 () =
+      let n = Random.int n_v in
+      let (slide, eligible) = get rem.verticals n in
+      if not eligible then
+        pick_n1 ()
+      else
+        (slide,n)
+    in
+    let rec pick_n2 n1 =
+      let n = Random.int n_v in
+      let (slide, eligible) = get rem.verticals n in
+      if (not eligible) || (n1 = n) then
+        pick_n2 n1
+      else
+        (slide, n)
+    in
+    let slide1, n1 = pick_n1 () in
+    let slide2, n2 = pick_n2 n1 in
+    Vert (Solution.Two (slide1, slide2), n1, n2)
   end
 
 let array_filter p from_ to_ =
@@ -142,7 +158,7 @@ let solver input nb_iterations =
   Solution.{ slides ; length = !pos - 1 }
 
 let instances =
-  ExtSeq.int ~start:10 ()
+  ExtSeq.int ~start:40 ()
   |>  Seq.map (fun n ->
       let n = 20 * n in
       let s = "input-" ^ (soi n) in
