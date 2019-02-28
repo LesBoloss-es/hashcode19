@@ -1,3 +1,5 @@
+open ExtPervasives
+
 type available = {
   mutable slides: (Solution.slide * bool) array;
   mutable nb_eligible: int;
@@ -47,7 +49,11 @@ let keep_going rem =
   rem.nb_eligible > 0
 
 let make_possible_slides input : available =
-  let slides = SlidesFromPhotos.stupid input |> Array.of_list in
+  let slides =
+    SlidesFromPhotos.stupid input
+    |> List.map (fun slide -> (slide, true))
+    |> Array.of_list
+  in
   { slides = slides ; nb_eligible = Array.length slides }
 
 let solver input nb_iterations =
@@ -85,6 +91,9 @@ let solver input nb_iterations =
 
   Solution.{ slides ; length = !pos - 1 }
 
-let solver input =
-  let input_copy = Problem.copy input in
-  solver input_copy
+let instances =
+  ExtSeq.int ~start:1 ()
+  |> Seq.map
+    (fun i ->
+       let iterations = 5 * i in
+       ("naive-"^(soi iterations), (fun problem -> solver problem iterations)))
