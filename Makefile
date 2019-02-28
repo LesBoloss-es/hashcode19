@@ -3,6 +3,7 @@
 LOGLEVEL ?= debug
 PROBLEMS ?= problems
 SOLUTIONS ?= solutions
+STRICT ?= yes
 WORKERS ?= 1
 
 build:
@@ -15,6 +16,7 @@ run: build
 		--log-level $(LOGLEVEL)  \
 		--problems $(PROBLEMS)   \
 		--solutions $(SOLUTIONS) \
+		--strict $(STRICT) \
 		--workers $(WORKERS)
 
 zip: clean
