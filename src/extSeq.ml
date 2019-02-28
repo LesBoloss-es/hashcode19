@@ -19,6 +19,14 @@ let from_function (f : unit -> 'a option) : 'a Seq.t =
   in
   s
 
+let from_function_i (f : int -> 'a option) : 'a Seq.t =
+  let rec s i () =
+    match f i with
+    | None -> Nil
+    | Some x -> Cons (x, s (i+1))
+  in
+  s 0
+
 let flatten (s : 'a t t) : 'a t =
   flat_map (fun x -> x) s
 
