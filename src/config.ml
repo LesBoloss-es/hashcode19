@@ -3,7 +3,7 @@ open ExtPervasives
 let loglevel = ref Logs.Debug
 let problems = ref "problems"
 let solutions = ref "solutions"
-let strict = ref false
+let strict = ref true
 let workers = ref 8
 
 let set_level level =
