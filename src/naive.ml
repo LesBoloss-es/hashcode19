@@ -1,45 +1,62 @@
-let get_random_slide _input _rem : Solution.slide = assert false
+type available = {
+  mutable slides: (Solution.slide * bool) array;
+  mutable nb_eligible: int;
+}
 
+let rec get_random_slide (rem : available) : Solution.slide * int =
+  let n = Random.int (Array.length rem.slides) in
+  let (slide, eligible) = rem.slides.(n) in
+  if not eligible then
+    get_random_slide rem
+  else
+    (slide, n)
 
-let rm_slide_everywhere _slide _input _rem = () (* FIXME *)
-
+let discard (rem: available) index =
+  let (s, _) = rem.slides.(index) in
+  rem.slides.(index) <- (s, false);
+  rem.nb_eligible <- rem.nb_eligible - 1
 
 let rec fold_int f init = function
   | 0 -> init
   | n -> fold_int f (f init n) (n - 1)
 
-
 let keep_going _input _rem = assert false
 
+let make_possible_slides _input : available =
+  assert false
 
-let solver input nb_iterations _horizon =
-  let remaining_photos = ref (Array.copy input.Problem.photos) in
-  let slides = Array.make 100_000 (Obj.magic 0) in
-  let first = get_random_slide input remaining_photos in
+let solver input nb_iterations =
+  let remaining_slides = make_possible_slides input in
+  let slides = Array.make 100_000 (Solution.dummy_slide) in
+  let first, index = get_random_slide remaining_slides in
   slides.(0) <- first;
   let pos = ref 1 in
+  discard remaining_slides index;
 
-  let rec solve () =
+  let rec solve last_index =
     let try_input best _ =
-      let (best_score, _) = best in
-      let slide = get_random_slide input remaining_photos in
+      let (best_score, _, _) = best in
+      let slide, index = get_random_slide remaining_slides in
       let new_score = Solution.score_of_slides slides.(!pos - 1) slide in
       if new_score > best_score then
-        (new_score, slide)
+        (new_score, slide, index)
       else
         best
     in
 
-    let (_, new_slide) = fold_int try_input (-1, slides.(!pos - 1)) nb_iterations in
+    let (_, new_slide, index) =
+      let init = (-1, slides.(!pos - 1), last_index) in
+      fold_int try_input init nb_iterations
+    in
 
     slides.(!pos) <- new_slide;
     incr pos;
-    rm_slide_everywhere new_slide input remaining_photos;
+    discard remaining_slides index;
 
-    if keep_going input remaining_photos then solve ();
+    if keep_going input remaining_slides then solve index;
   in
 
-  solve ();
+  solve index;
 
   Solution.{ slides ; length = !pos - 1 }
 
