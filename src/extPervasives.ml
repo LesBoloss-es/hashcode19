@@ -3,6 +3,9 @@ let epf = Format.eprintf
 let fpf = Format.fprintf
 let spf = Format.sprintf
 
+let soi = string_of_int
+let ios = int_of_string
+
 let (||>) f g = fun x -> f x |> g
 
 let datetime () =

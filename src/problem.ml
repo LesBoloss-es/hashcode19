@@ -27,5 +27,4 @@ let from_string ~problem_name (string : string) : t =
 
 let name problem = problem.name
 
-let example =
-  { name = "example" } (* FIXME *)
+let example = "" (* FIXME *)
