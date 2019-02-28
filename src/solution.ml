@@ -1,7 +1,14 @@
 (* open ExtPervasives *)
 module Log = (val Logger.create "solution" : Logs.LOG)
 
-type t = unit (* FIXME *)
+type slide =
+  | One of Problem.photo
+  | Two of Problem.photo * Problem.photo
+[@@deriving show]
+
+type t =
+  { length : int ;
+    slides : slide array }
 [@@deriving show]
 
 let to_file (filename : string) (solution : t) : unit =

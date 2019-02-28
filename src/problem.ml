@@ -1,9 +1,26 @@
 (* open ExtPervasives *)
 module Log = (val Logger.create "problem" : Logs.LOG)
 
-type t = (* FIXME *)
-  { name : string }
+type verticality = [`H | `V]
+
+and tag = int
+
+and photo =
+  { verticality : verticality ;
+    tags : tag list ;
+    id : int }
 [@@deriving show]
+
+type t =
+  { name : string ;
+    photos : photo array ;
+    tags : (tag, photo) Hashtbl.t [@opaque] }
+[@@deriving show]
+
+let copy problem =
+  { name = problem.name ;
+    photos = Array.copy problem.photos ;
+    tags = Hashtbl.copy problem.tags }
 
 let from_channel ~problem_name (ichan : in_channel) : t =
   ignore ichan;
