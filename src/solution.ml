@@ -11,6 +11,8 @@ type t =
     slides : slide array }
 [@@deriving show]
 
+let dummy_slide = One Problem.dummy_photo
+
 let to_file (filename : string) (solution : t) : unit =
   let ochan = open_out filename in
   output_string ochan (soi solution.length); output_char ochan '\n';

@@ -32,6 +32,9 @@ type t =
     tags : (tag, photo) Hashtbl.t [@printer print_tag_to_photo] }
 [@@deriving show]
 
+let dummy_photo = 
+  { verticality = `H; tags = []; id = -1 }
+
 let copy problem =
   { name = problem.name ;
     photos = Array.copy problem.photos ;
