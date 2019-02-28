@@ -1,7 +1,8 @@
 (* open ExtPervasives *)
 
 let all : (string * (Problem.t -> Solution.t)) Seq.t list =
-  [Naive.instances]
+  [Graph.instances;
+   Naive.instances]
 
 let tasks all_problems =
   let open Seq in

@@ -1,6 +1,8 @@
 open Problem
+module Log = (val Logger.create "slides-from-photos" : Logs.LOG)
 
 let stupid problem : Solution.slide list =
+  Log.debug (fun m -> m "start stupid");
   let slides = ref [] in
   Array.iter
     (fun photo_h ->
@@ -12,4 +14,5 @@ let stupid problem : Solution.slide list =
         problem.photos_v.(2*i+1))
                 :: !slides
   done;
+  Log.debug (fun m -> m "end stupid");
   !slides
