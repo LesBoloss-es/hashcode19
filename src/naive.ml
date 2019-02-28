@@ -12,9 +12,11 @@ type available = {
 }
 
 let shuffle_array arr =
-  let a' = Array.map (fun x -> (x, Random.bits ())) arr in
-  Array.sort (fun x y -> compare (snd x) (snd y)) a';
-  Array.iteri (fun i x -> arr.(i) <- x)
+  let len = Array.length arr in
+  for i = len downto 1 do
+    let j = Random.int i in
+    arr.(i - 1) <- arr.(j);
+  done
 
 
 let get arr index =
