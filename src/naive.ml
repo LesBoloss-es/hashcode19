@@ -23,7 +23,7 @@ let slide_of_index = function
   | Horz (s, _) -> s
   | Vert (s, _, _) -> s
 
-let get_random_slide (rem : available) : index =
+let get_random_slide_old (rem : available) : index =
   let w_h = rem.nb_h_eligible in
   let l_v = rem.nb_v_eligible in
   let w_v = l_v * (l_v - 1) / 2 in
@@ -61,6 +61,60 @@ let get_random_slide (rem : available) : index =
     let slide1, n1 = pick_n1 () in
     let slide2, n2 = pick_n2 n1 in
     Vert (Solution.Two (slide1, slide2), n1, n2)
+  end
+
+let get_random_slide cur_slide (rem : available) : index =
+  let w_h = rem.nb_h_eligible in
+  let l_v = rem.nb_v_eligible in
+  let w_v = l_v * (l_v - 1) / 2 in
+  let ratio = (float w_h) /. ((float w_h) +. (float w_v)) in 
+  let choose_h = (Random.float 1.) < ratio in
+  if (choose_h || w_v = 0) && w_h <> 0 then begin
+    let rec get_next i last = 
+      if i >= Array.length rem.horizontals then begin
+        match last with
+        | Some index -> index
+        | None -> assert false
+      end else begin
+        let (photo, eligible) = get rem.horizontals i in
+        let slide = Solution.One photo in
+        let output = Horz (slide, i) in
+        let score = Solution.score_of_slides cur_slide slide in
+        if eligible && score > 0 then 
+          output
+        else if eligible then
+          get_next (i+1) (Some output)
+        else 
+          get_next (i+1) last
+      end
+    in
+    get_next 0 None
+  end else begin
+    let rec get_next_available i = 
+      let (photo, eligible) = get rem.verticals i in
+      if eligible then (photo, i)
+      else get_next_available (i+1)
+    in
+    let photo1, i1 = get_next_available 0 in
+    let rec get_next i last = 
+      if i >= Array.length rem.verticals then begin
+        match last with
+        | Some index -> index
+        | None -> assert false
+      end else begin
+        let (photo, eligible) = get rem.verticals i in
+        let slide = Solution.Two (photo1, photo) in
+        let output = Vert (slide, i1, i) in
+        let score = Solution.score_of_slides cur_slide slide in
+        if eligible && score > 0 then 
+          output
+        else if eligible then
+          get_next (i+1) (Some output)
+        else 
+          get_next (i+1) last
+      end
+    in
+    get_next i1 None
   end
 
 let array_filter p from_ to_ =
@@ -124,7 +178,7 @@ let make_possible_slides input : available =
 let solver input nb_iterations =
   let remaining_slides = make_possible_slides input in
   let slides = Array.make 100_000 (Solution.dummy_slide) in
-  let index = get_random_slide remaining_slides in
+  let index = get_random_slide_old remaining_slides in
   set slides 0 (slide_of_index index);
   let pos = ref 1 in
   discard remaining_slides index;
@@ -132,7 +186,7 @@ let solver input nb_iterations =
   let rec solve last_index =
     let try_input best _ =
       let (best_score, _, _) = best in
-      let index = get_random_slide remaining_slides in
+      let index = get_random_slide (slide_of_index last_index) remaining_slides in
       let slide = slide_of_index index in
       let new_score = Solution.score_of_slides (get slides (!pos - 1)) slide in
       if new_score > best_score then
@@ -158,7 +212,7 @@ let solver input nb_iterations =
   Solution.{ slides ; length = !pos - 1 }
 
 let instances =
-  ExtSeq.int ~start:40 ()
+  ExtSeq.int ~start:20 ()
   |>  Seq.map (fun n ->
       let n = 20 * n in
       let s = "input-" ^ (soi n) in
