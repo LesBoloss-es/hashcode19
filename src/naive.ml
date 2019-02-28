@@ -2,6 +2,8 @@ open ExtPervasives
 
 type available = {
   mutable slides: (Solution.slide * bool) array;
+  mutable verticals: (Problem.photo * bool) array;
+  mutable horizontals: (Problem.photo * bool) array;
   mutable nb_eligible: int;
 }
 
@@ -57,7 +59,11 @@ let make_possible_slides input : available =
     |> List.map (fun slide -> (slide, true))
     |> Array.of_list
   in
-  { slides = slides ; nb_eligible = Array.length slides }
+  { slides = slides ;
+    nb_eligible = Array.length slides ;
+    verticals = Array.make 0 (Obj.magic 0) ;
+    horizontals = Array.make 0 (Obj.magic 0)
+  }
 
 let solver input nb_iterations =
   let remaining_slides = make_possible_slides input in
