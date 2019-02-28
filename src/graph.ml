@@ -96,5 +96,5 @@ let solver limit problem =
   Solution.{slides; length = Array.length slides}
 
 let instances = ExtSeq.from_function_i (fun i -> 
-  let limit = 50 + i in 
+  let limit = 50 + i * 3 in 
   Some ("victor", solver limit))
