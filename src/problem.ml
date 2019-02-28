@@ -18,10 +18,18 @@ type photo =
     id : int }
 [@@deriving show]
 
+let print_tag_to_photo fmt hashtbl =
+  fpf fmt "@[<2>[@ ";
+  Hashtbl.iter
+    (fun tag photo ->
+       fpf fmt "%d -> %a@\n" tag pp_photo photo)
+    hashtbl;
+  fpf fmt "]@]"
+
 type t =
   { name : string ;
     photos : photo array ;
-    tags : (tag, photo) Hashtbl.t [@opaque] }
+    tags : (tag, photo) Hashtbl.t [@printer print_tag_to_photo] }
 [@@deriving show]
 
 let copy problem =
@@ -62,7 +70,8 @@ let from_channel ~problem_name (ichan : in_channel) : t =
       let tags = List.map tag_from_string tags in
       let photo =
         { verticality = verticality_of_string verticality ;
-          tags ; id = i_photo }
+          tags = List.sort compare tags ;
+          id = i_photo }
       in
       add_photo photo;
       List.iter
@@ -94,5 +103,3 @@ let from_string ~problem_name (string : string) : t =
   problem
 
 let name problem = problem.name
-
-let example = "4\nH 3 cat beach sun\nV 2 selfie smile\nV 2 garden selfie\nH 2 garden cat\n"
