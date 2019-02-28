@@ -15,3 +15,19 @@ let datetime () =
     tm.tm_hour tm.tm_min tm.tm_sec
 
 let (>>=) = Lwt.bind
+
+let union_sorted l1 l2 = 
+  let rec aux acc l1 l2 = 
+    match l1, l2 with
+    | [], [] -> List.rev acc
+    | h1::t1, [] -> aux (h1::acc) t1 []
+    | [], h2::t2 -> aux (h2::acc) [] t2
+    | h1::t1,h2::t2 ->
+      if h1 < h2 then
+        aux (h1::acc) t1 l2
+      else if h1 > h2 then
+        aux (h2::acc) l1 t2
+      else
+        aux (h1::acc) t1 t2
+  in
+  aux [] l1 l2
