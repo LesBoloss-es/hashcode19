@@ -8,13 +8,9 @@ let get_problems () =
   |> List.sort compare
   |> List.map
     (fun problem_name ->
-       let problem =
-         Problem.from_file
-           ~problem_name
-           (Filename.concat !Config.problems problem_name)
-       in
-       Log.debug (fun m -> m "Problem %s:@\n%a" problem_name Problem.pp problem);
-       problem)
+       Problem.from_file
+         ~problem_name
+         (Filename.concat !Config.problems problem_name))
 
 type process_status = Unix.process_status =
   | WEXITED of int
@@ -29,7 +25,6 @@ let run_solver_on_problem (problem, (name, solver)) =
        the score of the obtained solution and look in the solutions directory to
        see if that is an improvement. If yes, we write our solution. *)
     let solution = solver (Problem.copy problem) in
-    Log.debug (fun m -> m "Solution to %s:@\n%a" (Problem.name problem) Solution.pp solution);
     Io.Solution.write_if_better ~problem ~solver_name:name solution;
     exit 0
 
