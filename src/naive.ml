@@ -1,10 +1,12 @@
 open ExtPervasives
 
+type index = Horz of (Solution.slide * int) | Vert of (Solution.slide * int * int)
+
 type available = {
-  mutable slides: (Solution.slide * bool) array;
   mutable verticals: (Problem.photo * bool) array;
   mutable horizontals: (Problem.photo * bool) array;
-  mutable nb_eligible: int;
+  mutable nb_v_eligible: int;
+  mutable nb_h_eligible: int;
 }
 
 let get arr index =
@@ -15,13 +17,32 @@ let set arr index value =
   assert (index < Array.length arr);
   arr.(index) <- value
 
-let rec get_random_slide (rem : available) : Solution.slide * int =
-  let n = Random.int (Array.length rem.slides) in
-  let (slide, eligible) = get rem.slides n in
-  if not eligible then
-    get_random_slide rem
-  else
-    (slide, n)
+let slide_of_index = function
+  | Horz (s, _) -> s
+  | Vert (s, _, _) -> s
+
+let rec get_random_slide (rem : available) : index =
+  let w_h = rem.nb_h_eligible in
+  let l_v = rem.nb_v_eligible in
+  let w_v = l_v * (l_v - 1) / 2 in
+  let choose_h = Random.int (w_h + w_v) < w_h in
+  if choose_h then begin
+    let n = Random.int (Array.length rem.horizontals) in
+    let (slide, eligible) = get rem.horizontals n in
+    if not eligible then
+      get_random_slide rem
+    else
+      Horz (Solution.One slide, n)
+  end else begin
+    let n_v = Array.length rem.verticals in
+    let n1, n2 = Random.int n_v, Random.int n_v in
+    let (slide1, eligible1) = get rem.verticals n1 in
+    let (slide2, eligible2) = get rem.verticals n2 in
+    if not (eligible1 && eligible2) then
+      get_random_slide rem
+    else
+      Vert (Solution.Two (slide1, slide2), n1, n2)
+  end
 
 let array_filter p from_ to_ =
   let pos = ref 0 in
@@ -33,50 +54,67 @@ let array_filter p from_ to_ =
   !pos
 
 
-let discard (rem: available) index =
-  let (s, _) = get rem.slides index in
-  set rem.slides index (s, false);
-  rem.nb_eligible <- pred rem.nb_eligible;
+let discard (rem: available) (index: index) =
+  begin match index with
+  | Horz (_, idx) ->
+    let (ph, _) = get rem.horizontals idx in
+    set rem.horizontals idx (ph, false);
+    rem.nb_h_eligible <- pred rem.nb_h_eligible;
+    if rem.nb_h_eligible > 10 && (rem.nb_h_eligible * 2 <= Array.length rem.horizontals) then begin
+      let arr = Array.make rem.nb_h_eligible (get rem.horizontals 0) in
+      let nb_copies = array_filter snd rem.horizontals arr in
+      assert (nb_copies = rem.nb_h_eligible);
+      rem.horizontals <- arr
+    end
 
-  if rem.nb_eligible > 10 && (rem.nb_eligible * 2 <= Array.length rem.slides) then begin
-    let arr = Array.make rem.nb_eligible (get rem.slides 0) in
-    let nb_copies = array_filter snd rem.slides arr in
-    assert (nb_copies = rem.nb_eligible);
-    rem.slides <- arr
+  | Vert (_, idx1, idx2) ->
+    let (ph1, _) = get rem.horizontals idx1 in
+    let (ph2, _) = get rem.horizontals idx2 in
+    set rem.verticals idx1 (ph1, false);
+    set rem.verticals idx2 (ph2, false);
+    rem.nb_v_eligible <- pred (pred rem.nb_v_eligible);
+    if rem.nb_v_eligible > 10 && (rem.nb_v_eligible * 2 <= Array.length rem.verticals) then begin
+      let arr = Array.make rem.nb_v_eligible (get rem.verticals 0) in
+      let nb_copies = array_filter snd rem.verticals arr in
+      assert (nb_copies = rem.nb_v_eligible);
+      rem.verticals <- arr
+    end
   end
-
 
 let rec fold_int f init = function
   | 0 -> init
   | n -> fold_int f (f init n) (n - 1)
 
 let keep_going rem =
-  rem.nb_eligible > 0
+  rem.nb_h_eligible > 0 || rem.nb_v_eligible > 1
 
 let make_possible_slides input : available =
-  let slides =
-    SlidesFromPhotos.stupid input
-    |> List.map (fun slide -> (slide, true))
-    |> Array.of_list
-  in
-  { slides = slides ;
-    nb_eligible = Array.length slides ;
-    verticals = Array.make 0 (Obj.magic 0) ;
-    horizontals = Array.make 0 (Obj.magic 0)
+  let verticals = Array.make (Array.length input.Problem.photos_v) (Obj.magic 0) in
+  let horizontals = Array.make (Array.length input.Problem.photos_h) (Obj.magic 0) in
+  Array.iteri (fun i elt -> verticals.(i) <- (input.Problem.photos_v.(i), true))
+    input.Problem.photos_v;
+  Array.iteri (fun i elt -> horizontals.(i) <- (input.Problem.photos_h.(i), true))
+    input.Problem.photos_h;
+  { 
+    nb_h_eligible = Array.length horizontals ;
+    nb_v_eligible = Array.length verticals ;
+    verticals;
+    horizontals;
   }
 
 let solver input nb_iterations =
   let remaining_slides = make_possible_slides input in
   let slides = Array.make 100_000 (Solution.dummy_slide) in
-  let first, index = get_random_slide remaining_slides in
-  set slides 0 first;
+  let index = get_random_slide remaining_slides in
+  set slides 0 (slide_of_index index);
   let pos = ref 1 in
   discard remaining_slides index;
 
   let rec solve last_index =
     let try_input best _ =
       let (best_score, _, _) = best in
-      let slide, index = get_random_slide remaining_slides in
+      let index = get_random_slide remaining_slides in
+      let slide = slide_of_index index in
       let new_score = Solution.score_of_slides (get slides (!pos - 1)) slide in
       if new_score > best_score then
         (new_score, slide, index)
