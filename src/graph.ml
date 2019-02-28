@@ -1,3 +1,5 @@
+module Log = (val Logger.create "victor" : Logs.LOG)
+
 type edge = {
   score : int;
   starts : Solution.slide;
@@ -9,25 +11,30 @@ type t = {
   indices : (Solution.slide, int) Hashtbl.t
 }
 
-let make_from_slides slides = 
+let make_from_slides slides limit = 
   let length = List.length slides in
   let neighbours = Array.make length [] in
   let indices = Hashtbl.create 13 in
   List.iteri (fun i slide -> Hashtbl.add indices slide i) slides;
-  let rec aux cur_slide next_slides = 
+  let rec aux cur_slide next_slides limit = 
     match next_slides with
     | [] -> ()
     | h::t ->
-      let cur_id = Hashtbl.find indices cur_slide in
-      let next_id = Hashtbl.find indices h in
-      let score = Solution.score_of_slides cur_slide h in
-      neighbours.(cur_id) <- {score; starts = cur_slide; ends = h} :: neighbours.(cur_id);
-      neighbours.(next_id) <- {score; starts = h; ends = cur_slide} :: neighbours.(next_id);
-      aux cur_slide t
+      if limit = 0 then ()
+      else begin
+        let cur_id = Hashtbl.find indices cur_slide in
+        let next_id = Hashtbl.find indices h in
+        let score = Solution.score_of_slides cur_slide h in
+        if score <> 0 then begin
+          neighbours.(cur_id) <- {score; starts = cur_slide; ends = h} :: neighbours.(cur_id);
+          neighbours.(next_id) <- {score; starts = h; ends = cur_slide} :: neighbours.(next_id);
+        end;
+        aux cur_slide t (limit - 1)
+      end
   in
   let rec aux2 = function
     | [] -> ()
-    | h::t -> aux h t; aux2 t
+    | h::t -> aux h t limit; aux2 t
   in
   aux2 slides;
   {neighbours; indices}
@@ -77,11 +84,17 @@ let solve_graph graph =
     traverse graph rnd non_visited [rnd]
   | None -> []
 
-let solver problem = 
+let solver limit problem = 
+  Log.debug (fun m -> m "Solving problem %s"(Problem.name problem));
   let slides = SlidesFromPhotos.stupid problem in
-  let graph = make_from_slides slides in
+  Log.debug (fun m -> m "Got slides");
+  let graph = make_from_slides slides limit in
+  Log.debug (fun m -> m "Made graph");
   let sol = solve_graph graph in
+  Log.debug (fun m -> m "Graph solved");
   let slides = Array.of_list sol in
   Solution.{slides; length = Array.length slides}
 
-let instances = ExtSeq.from_function (fun () -> Some ("victor", solver))
+let instances = ExtSeq.from_function_i (fun i -> 
+  let limit = 50 + i * 3 in 
+  Some ("victor", solver limit))
