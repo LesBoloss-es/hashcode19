@@ -1,4 +1,4 @@
-(* open ExtPervasives *)
+open ExtPervasives
 module Log = (val Logger.create "solution" : Logs.LOG)
 
 type slide =
@@ -13,10 +13,15 @@ type t =
 
 let to_file (filename : string) (solution : t) : unit =
   let ochan = open_out filename in
-  ignore ochan;
-  ignore filename;
-  ignore solution;
-  assert false (* FIXME *)
+  output_string ochan (soi solution.length); output_char ochan '\n';
+  for i_slide = 0 to solution.length - 1 do
+    match solution.slides.(i_slide) with
+    | One p ->
+      output_string ochan (soi p.id); output_char ochan '\n'
+    | Two (p1, p2) ->
+      output_string ochan (soi p1.id); output_char ochan ' ';
+      output_string ochan (soi p2.id); output_char ochan '\n'
+  done
 
 let tags_of_slide = function
   | One photo -> photo.Problem.tags
