@@ -91,9 +91,9 @@ let keep_going rem =
 let make_possible_slides input : available =
   let verticals = Array.make (Array.length input.Problem.photos_v) (Obj.magic 0) in
   let horizontals = Array.make (Array.length input.Problem.photos_h) (Obj.magic 0) in
-  Array.iteri (fun i elt -> verticals.(i) <- (input.Problem.photos_v.(i), true))
+  Array.iteri (fun i elt -> verticals.(i) <- (elt, true))
     input.Problem.photos_v;
-  Array.iteri (fun i elt -> horizontals.(i) <- (input.Problem.photos_h.(i), true))
+  Array.iteri (fun i elt -> horizontals.(i) <- (elt, true))
     input.Problem.photos_h;
   { 
     nb_h_eligible = Array.length horizontals ;
