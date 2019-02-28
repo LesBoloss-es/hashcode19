@@ -28,7 +28,8 @@ let print_tag_to_photo fmt hashtbl =
 
 type t =
   { name : string ;
-    photos : photo array ;
+    photos_v : photo array ;
+    photos_h : photo array ;
     tags : (tag, photo) Hashtbl.t [@printer print_tag_to_photo] }
 [@@deriving show]
 
@@ -37,7 +38,8 @@ let dummy_photo =
 
 let copy problem =
   { name = problem.name ;
-    photos = Array.copy problem.photos ;
+    photos_v = Array.copy problem.photos_v ;
+    photos_h = Array.copy problem.photos_h ;
     tags = Hashtbl.copy problem.tags }
 
 let from_channel ~problem_name (ichan : in_channel) : t =
@@ -58,25 +60,30 @@ let from_channel ~problem_name (ichan : in_channel) : t =
 
   let tag_to_photo = Hashtbl.create 100 in
 
-  let photos = Array.make nb_photos (Obj.magic 0) in
-  let next_photo = ref 0 in
-  let add_photo photo =
-    photos.(!next_photo) <- photo;
-    incr next_photo
+  let photos_v = Array.make nb_photos (Obj.magic 0) in
+  let photos_h = Array.make nb_photos (Obj.magic 0) in
+  let next_photo_v = ref 0 in
+  let next_photo_h = ref 0 in
+  let add_photo_v photo =
+    photos_v.(!next_photo_v) <- photo;
+    incr next_photo_v
+  in
+  let add_photo_h photo =
+    photos_h.(!next_photo_h) <- photo;
+    incr next_photo_h
   in
 
   for i_photo = 0 to nb_photos - 1 do
     match input_line ichan |> String.split_on_char ' ' with
 
     | verticality :: nb_tags :: tags ->
+      let verticality = verticality_of_string verticality in
       assert (List.length tags = ios nb_tags);
-      let tags = List.map tag_from_string tags in
-      let photo =
-        { verticality = verticality_of_string verticality ;
-          tags = List.sort compare tags ;
-          id = i_photo }
-      in
-      add_photo photo;
+      let tags = List.map tag_from_string tags |> List.sort compare in
+      let photo = { verticality ; tags ; id = i_photo } in
+      (match verticality with
+       | `V -> add_photo_v
+       | `H -> add_photo_h) photo;
       List.iter
         (fun tag ->
            Hashtbl.add tag_to_photo tag photo)
@@ -86,9 +93,12 @@ let from_channel ~problem_name (ichan : in_channel) : t =
       assert false
   done;
 
-  assert (!next_photo = nb_photos);
+  assert (!next_photo_v + !next_photo_h = nb_photos);
 
-  { name = problem_name ; photos ; tags = tag_to_photo }
+  { name = problem_name ;
+    photos_v = Array.sub photos_v 0 !next_photo_v ;
+    photos_h = Array.sub photos_h 0 !next_photo_h ;
+    tags = tag_to_photo }
 
 let from_file ~problem_name (filename : string) : t =
   let ichan = open_in filename in
