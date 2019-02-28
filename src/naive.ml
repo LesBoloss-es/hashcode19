@@ -1,4 +1,4 @@
-open ExtPervasives
+(* open ExtPervasives *)
 
 type available = {
   mutable slides: (Solution.slide * bool) array;
@@ -92,8 +92,4 @@ let solver input nb_iterations =
   Solution.{ slides ; length = !pos - 1 }
 
 let instances =
-  ExtSeq.int ~start:1 ()
-  |> Seq.map
-    (fun i ->
-       let iterations = 5 * i in
-       ("naive-"^(soi iterations), (fun problem -> solver problem iterations)))
+  Seq.return ("naive-1", fun problem -> solver problem 1)

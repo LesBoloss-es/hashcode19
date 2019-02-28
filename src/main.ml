@@ -62,9 +62,9 @@ let rec log_total_score_every ~time problems =
 
 let () = Log.info (fun m -> m "Starting up.")
 
-let () = Sys.(set_signal sigint (Signal_handle (fun _ ->
+(* let () = Sys.(set_signal sigint (Signal_handle (fun _ ->
     Log.info (fun m -> m "Received SIGINT (^C). Stopping gracefully.");
-    Config.stop := true)))
+    Config.stop := true))) *)
 
 let () =
   let seed = 135801055 in
