@@ -9,7 +9,7 @@
 
 ## Project
 /bin
-/solutions/*
+/solutions/*.lock
 /sources.zip
 
 ## General
